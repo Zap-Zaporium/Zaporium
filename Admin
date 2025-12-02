@@ -1,125 +1,260 @@
--- ZaporiumKeySystem.lua → NOW WITH PERMANENT KEY SAVING (until 24h expires)
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local SAVE_FILE = "ZaporiumKeySave.txt" -- saved on your PC
-local ZaporiumKeySystem = {}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Zaporium Key</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500&display=swap');
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .container {
+            background: #111;
+            padding: 40px 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            text-align: center;
+            max-width: 90%;
+            box-sizing: border-box;
+        }
+        h1 { font-size: 2rem; margin: 0 0 10px; font-weight: 500; }
+        .subtitle { color: #ccc; margin-bottom: 30px; font-size: 1rem; }
+        .key-box {
+            background: #222;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            word-break: break-all;
+            color: #fff;
+        }
+        .copy-btn {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+            transition: .3s;
+        }
+        .copy-btn:hover { background: #0056b3; }
+        .copy-btn:disabled {
+            background: #3a78d1;
+            cursor: not-allowed;
+            opacity: .6;
+        }
+        .continue-btn {
+            background: #444;
+            color: #888;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 4px;
+            cursor: not-allowed;
+            margin: 20px auto;
+            display: block;
+            width: 80%;
+            max-width: 300px;
+            transition: .3s;
+        }
+        .continue-btn.active {
+            background: #fff;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .timer { color: #fff; font-size: 1.1rem; margin: 15px 0; font-weight: bold; }
+        .success { color: #aaa; margin: 15px 0; }
+        .desc { color: #aaa; font-size: 0.9rem; line-height: 1.4; margin: 20px 0; }
+        .links a { color: #007bff; margin: 0 10px; text-decoration: none; font-size: 0.9rem; }
+        .footer { margin-top: 20px; font-size: 0.8rem; color: #666; }
+        .hidden { display: none; }
+        #notify {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #007bff;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 6px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity .4s;
+        }
+        #notify.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ZAPORIUM</h1>
+        <p class="subtitle">Exclusive Access Key System</p>
 
-function ZaporiumKeySystem.new(config)
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "ZaporiumKeySystem"
-    gui.Parent = game.CoreGui
-    gui.ResetOnSpawn = false
+        <!-- CONTINUE SCREEN -->
+        <div id="continueScreen">
+            <p class="desc">
+                Click continue after the timer.<br>
+                Ads may appear — they support the project.
+            </p>
+            <button class="continue-btn" id="continueBtn" disabled>
+                Continue (<span id="countdown">5</span>s)
+            </button>
+            <div class="timer">Please wait...</div>
+        </div>
 
-    -- try to load saved key first
-    local savedKey = nil
-    if isfile and readfile and isfile(SAVE_FILE) then
-        savedKey = readfile(SAVE_FILE):gsub("%s+", ""):upper()
-    end
+        <!-- KEY SCREEN -->
+        <div id="keyScreen" class="hidden">
+            <div id="keyDisplay" class="key-box">ZAP-XXXXX-XXXXX-XXXXX</div>
+            <button class="copy-btn" id="copyBtn" onclick="copyKey()">COPY KEY</button>
+            <div class="timer" id="timer">Time left: 23:59:59</div>
+            <p class="success">Valid for 24 hours • Do not share</p>
+            <div class="links">
+                <a href="#" target="_blank">YouTube</a>
+                <a href="#" target="_blank">Discord</a>
+            </div>
+            <p class="footer">© 2025 Zaporium Hub</p>
+        </div>
 
-    -- if we have a saved key → auto verify it
-    if savedKey and #savedKey > 10 then
-        if config.ValidateKey and config.ValidateKey(savedKey) then
-            task.spawn(config.OnSuccess)
-            return {Show = function() end}
-        end
-    end
+        <div id="notify">Key copied!</div>
+    </div>
 
-    -- if no valid saved key → show the GUI
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 350, 0, 200)
-    frame.Position = UDim2.new(0.5, -175, 0.5, -100)
-    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    frame.BorderSizePixel = 2
-    frame.BorderColor3 = Color3.fromRGB(0, 170, 255)
-    frame.BackgroundTransparency = 0.25
-    frame.Parent = gui
+    <script>
+        const LOOT_LINK = "https://lootdest.org/s?ZS40VyJq";
+        const STORAGE_KEY = "zaporium_data_v2";
+        const DURATION = 24 * 60 * 60 * 1000;
 
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 50)
-    title.BackgroundTransparency = 1
-    title.Text = config.Title or "ZAPORIUM HUB"
-    title.TextColor3 = Color3.fromRGB(0, 255, 255)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 28
-    title.Parent = frame
+        const ALL_KEYS = [
+            "ZAP-1A2B3C-4D5E6F-G7H8I9","ZAP-9X8K7M-3N2P1Q-W4E5R6","ZAP-7V6B5N-4M3L2K-J1H9G8",
+            "ZAP-5T4R3E-2W1QA9-S8D7F6","ZAP-CHEYT25-WIN99X-ELITE1","ZAP-NEON404-CYBER9-XMAS25",
+            "ZAP-ULTRA77-LEGEND1-ALPHA9","ZAP-OMEGA99-SECRET0-HACK3R","ZAP-XMAS2025-GIFT01-VIP77",
+            "ZAP-CYBER111-PROMAX9-KEY001","ZAP-FINAL555-OWNER77-2025X","ZAP-GLOW999-NIGHTX-CORE77",
+            "ZAP-ICE777-FIRE999-VOID001","ZAP-QUANTUM25-REALM9-KEY002","ZAP-ETHEREAL-GLITCH7-NOVA25",
+            "ZAP-VOID888-PULSE9-STAR001","ZAP-CRYPTIC7-MYSTIC9-KEY003","ZAP-ORACLE25-LEGACY7-ELITE9",
+            "ZAP-PHOENIX9-REBORN25-KEY004","ZAP-SHADOWX-LIGHT9-CORE002","ZAP-TITAN777-MEGA9-KEY005",
+            "ZAP-APEX2025-ULTIMA7-KEY006","ZAP-ZENITH9-ABYSS25-KEY007","ZAP-INFINITE7-ETERNAL9-KEY008",
+            "ZAP-COSMIC25-NEBULA9-KEY009","ZAP-STELLAR7-GALAXY9-KEY010","ZAP-LUNAR999-SOLAR777-KEY011",
+            "ZAP-FINAL25-ULTIMATE9-KEY099","ZAP-ABSOLUTE25-KEY100"
+        ];
 
-    local input = Instance.new("TextBox")
-    input.Size = UDim2.new(0.9, 0, 0, 45)
-    input.Position = UDim2.new(0.05, 0, 0.3, 0)
-    input.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    input.PlaceholderText = "Paste your key here..."
-    input.Text = ""
-    input.TextColor3 = Color3.new(1,1,1)
-    input.Font = Enum.Font.Gotham
-    input.TextSize = 18
-    input.Parent = frame
+        function saveData(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+        function loadData() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
 
-    local checkBtn = Instance.new("TextButton")
-    checkBtn.Size = UDim2.new(0.9, 0, 0, 45)
-    checkBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
-    checkBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-    checkBtn.Text = "Check Key"
-    checkBtn.TextColor3 = Color3.new(0,0,0)
-    checkBtn.Font = Enum.Font.GothamBold
-    checkBtn.TextSize = 20
-    checkBtn.Parent = frame
+        function formatTime(ms) {
+            let h = String(Math.floor(ms / 3600000)).padStart(2, "0");
+            let m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, "0");
+            let s = String(Math.floor((ms % 60000) / 1000)).padStart(2, "0");
+            return `${h}:${m}:${s}`;
+        }
 
-    local getKeyBtn = Instance.new("TextButton")
-    getKeyBtn.Size = UDim2.new(0.9, 0, 0, 35)
-    getKeyBtn.Position = UDim2.new(0.05, 0, 0.85, 0)
-    getKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-    getKeyBtn.Text = "Get Key → Opens Generator"
-    getKeyBtn.TextColor3 = Color3.new(1,1,1)
-    getKeyBtn.Font = Enum.Font.Gotham
-    getKeyBtn.TextSize = 16
-    getKeyBtn.Parent = frame
+        function copyKey() {
+            const btn = document.getElementById("copyBtn");
+            navigator.clipboard.writeText(document.getElementById("keyDisplay").textContent);
 
-    local status = Instance.new("TextLabel")
-    status.Size = UDim2.new(0.9, 0, 0, 30)
-    status.Position = UDim2.new(0.05, 0, 0.55, 0)
-    status.BackgroundTransparency = 1
-    status.Text = ""
-    status.TextColor3 = Color3.fromRGB(255, 255, 0)
-    status.Font = Enum.Font.Gotham
-    status.TextSize = 16
-    status.Parent = frame
+            const n = document.getElementById("notify");
+            n.classList.add("show");
+            setTimeout(() => n.classList.remove("show"), 2000);
 
-    -- Get Key button (UPDATED TO NEW SITE PLACEHOLDER)
-    getKeyBtn.MouseButton1Click:Connect(function()
-        setclipboard("https://zaporium.xyz/key") -- ← Update this to your actual key generator site
-        game.StarterGui:SetCore("SendNotification",{Title="Zaporium";Text="Link copied! Opening...";Duration=4})
-        request({Url="https://zaporium.xyz/key"}) -- ← Update URL here too
-    end)
+            btn.textContent = "Copied key";
+            btn.disabled = true;
+        }
 
-    -- Check key button
-    checkBtn.MouseButton1Click:Connect(function()
-        local key = input.Text:gsub("%s+", ""):upper()
-        if key == "" then
-            status.Text = "Enter a key first!"
-            status.TextColor3 = Color3.fromRGB(255,100,100)
-            return
-        end
+        function showKeyScreen(key) {
+            document.getElementById("continueScreen").classList.add("hidden");
+            document.getElementById("keyScreen").classList.remove("hidden");
+            document.getElementById("keyDisplay").textContent = key;
 
-        status.Text = "Verifying..."
-        status.TextColor3 = Color3.fromRGB(255,255,0)
+            const data = loadData();
+            const start = data.generationTime || Date.now();
 
-        if config.ValidateKey(key) then
-            -- SAVE THE KEY SO IT NEVER ASKS ONLY ONCE (until 24h)
-            if writefile then
-                writefile(SAVE_FILE, key)
-            end
-            status.Text = "Accepted! Loading script..."
-            status.TextColor3 = Color3.fromRGB(0,255,0)
-            task.wait(1)
-            gui:Destroy()
-            config.OnSuccess()
-        else
-            status.Text = "Invalid / Expired Key"
-            status.TextColor3 = Color3.fromRGB(255,100,100)
-        end
-    end)
+            function tick() {
+                const left = DURATION - (Date.now() - start);
+                if (left <= 0) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    location.reload();
+                    return;
+                }
+                document.getElementById("timer").textContent = "Time left: " + formatTime(left);
+            }
 
-    return {Show = function() gui.Enabled = true end}
-end
+            tick();
+            setInterval(tick, 1000);
+        }
 
-return ZaporiumKeySystem
+        function startCountdown() {
+            let s = 5;
+            const btn = document.getElementById("continueBtn");
+            const counter = document.getElementById("countdown");
+
+            const timer = setInterval(() => {
+                s--;
+                counter.textContent = s;
+                if (s <= 0) {
+                    clearInterval(timer);
+                    btn.classList.add("active");
+                    btn.disabled = false;
+                    btn.textContent = "Continue →";
+                }
+            }, 1000);
+        }
+
+        function generateKeyProperly() {
+            const data = loadData();
+            let used = data.usedKeys || [];
+
+            const available = ALL_KEYS.filter(k => !used.includes(k));
+            if (available.length === 0) {
+                alert("All keys claimed! Contact owner.");
+                return;
+            }
+
+            const newKey = available[Math.floor(Math.random() * available.length)];
+            used.push(newKey);
+
+            saveData({
+                key: newKey,
+                generationTime: Date.now(),
+                usedKeys: used
+            });
+
+            showKeyScreen(newKey);
+        }
+
+        // MAIN PAGE LOGIC
+        window.addEventListener("load", () => {
+            const url = new URL(window.location.href);
+            const data = loadData();
+
+            // RETURNING FROM LOOTLABS
+            if (url.searchParams.get("done") === "1") {
+                generateKeyProperly();
+                return;
+            }
+
+            // Already has valid key
+            if (data.key && data.generationTime && (Date.now() - data.generationTime < DURATION)) {
+                showKeyScreen(data.key);
+                return;
+            }
+
+            // Normal flow
+            startCountdown();
+            document.getElementById("continueBtn").onclick = () => {
+                window.open(LOOT_LINK, "_blank");
+            };
+        });
+    </script>
+</body>
+</html>
