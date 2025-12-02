@@ -1,4 +1,4 @@
--- ZaporiumKeySystem.lua → UPDATED FOR INFINITYFREE (Opens your site + LootLabs flow)
+-- ZaporiumKeySystem.lua → FULLY INTEGRATED WITH INFINITYFREE (LootLabs + 1h Expiry)
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
@@ -86,7 +86,7 @@ function ZaporiumKeySystem.new(config)
     status.TextSize = 16
     status.Parent = frame
 
-    -- Get Key button → NOW OPENS YOUR INFINITYFREE SITE (LootLabs + 100-key claim)
+    -- Get Key button → NOW OPENS YOUR INFINITYFREE SITE (LootLabs flow)
     getKeyBtn.MouseButton1Click:Connect(function()
         setclipboard("https://Zaporium-Key.infinityfree.me")
         game.StarterGui:SetCore("SendNotification",{Title="Zaporium";Text="Link copied! Opening...";Duration=4})
@@ -106,7 +106,7 @@ function ZaporiumKeySystem.new(config)
         status.TextColor3 = Color3.fromRGB(255,255,0)
 
         if config.ValidateKey(key) then
-            -- SAVE THE KEY SO IT NEVER ASKS ONLY ONCE
+            -- SAVE THE KEY SO IT NEVER ASKS ONLY ONCE (until 1h server expiry)
             if writefile then
                 writefile(SAVE_FILE, key)
             end
