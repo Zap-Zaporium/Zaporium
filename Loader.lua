@@ -1,7 +1,7 @@
--- ZAPORIUM HUB LOADER - FULLY INTEGRATED WITH INFINITYFREE (1h expiry + LootLabs)
-local ZaporiumKeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zap-Zaporium/Zaporium/refs/heads/main/Admin"))()  -- Uses your Admin as GUI
+-- ZAPORIUM HUB LOADER - FINAL FIXED VERSION (Rejoin works perfectly)
+local ZaporiumKeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/cheyt2025-cyber/Keys/main/ZaporiumKeySystem.lua"))()
 
-local VALIDATION_URL = "https://Zaporium-Key.infinityfree.me/checkkey.php"  -- Your InfinityFree backend
+local VALIDATION_URL = "https://raw.githubusercontent.com/cheyt2025-cyber/Keysystem/refs/heads/main/validate.txt"
 local SAVE_FILE = "ZaporiumKeySave.txt"
 
 local function isKeyValid(key)
@@ -11,7 +11,7 @@ local function isKeyValid(key)
         return game:HttpGet(VALIDATION_URL .. "?key=" .. key)
     end)
     if not success then return false end
-    return response == "valid"  -- Matches your PHP output (1h server expiry enforced)
+    return response:find("VALID") ~= nil
 end
 
 local function scheduleDeleteAfter24h()
@@ -29,7 +29,7 @@ if isfile and isfile(SAVE_FILE) then
     if isKeyValid(savedKey) then
         print("[Zaporium] Saved key valid → loading script instantly...")
         scheduleDeleteAfter24h()
-        -- GAME LIST (unchanged)
+        -- GAME LIST (exactly the same as yours)
         local Games = {
             [99879949355467]   = "https://raw.githubusercontent.com/cheyt2025-cyber/Boss/refs/heads/main/Army%20Factory",
             [99421051519131]   = "https://raw.githubusercontent.com/cheyt2025-cyber/Boss/refs/heads/main/Color%20Game%20Inf",
@@ -60,13 +60,13 @@ if isfile and isfile(SAVE_FILE) then
                 Duration = 8
             })
         end
-        return  -- Stop here so GUI never shows
+        return  -- ← super important: stop the script here so GUI never shows
     else
-        if isfile(SAVE_FILE) then delfile(SAVE_FILE) end  -- Invalid/expired → delete
+        if isfile(SAVE_FILE) then delfile(SAVE_FILE) end  -- invalid saved key → delete it
     end
 end
 
--- Show GUI if no valid saved key
+-- If no saved key or saved key expired → show GUI normally
 ZaporiumKeySystem.new({
     Title = "ZAPORIUM HUB",
     ValidateKey = function(key)
