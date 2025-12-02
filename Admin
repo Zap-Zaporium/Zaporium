@@ -1,4 +1,4 @@
--- ZaporiumKeySystem.lua → NOW WITH PERMANENT KEY SAVING (until 24h expires
+-- ZaporiumKeySystem.lua → UPDATED FOR INFINITYFREE (Opens your site + LootLabs flow)
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
@@ -86,11 +86,11 @@ function ZaporiumKeySystem.new(config)
     status.TextSize = 16
     status.Parent = frame
 
-    -- Get Key button
+    -- Get Key button → NOW OPENS YOUR INFINITYFREE SITE (LootLabs + 100-key claim)
     getKeyBtn.MouseButton1Click:Connect(function()
-        setclipboard("https://cheyt2025-cyber.github.io/Keysystem/")
+        setclipboard("https://Zaporium-Key.infinityfree.me")
         game.StarterGui:SetCore("SendNotification",{Title="Zaporium";Text="Link copied! Opening...";Duration=4})
-        request({Url="https://cheyt2025-cyber.github.io/Keysystem/"})
+        request({Url="https://Zaporium-Key.infinityfree.me"})
     end)
 
     -- Check key button
