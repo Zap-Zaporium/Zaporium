@@ -1,7 +1,7 @@
--- ZAPORIUM HUB LOADER - FINAL FIXED VERSION (Rejoin works perfectly)
+-- ZAPORIUM HUB LOADER - UPDATED FOR INFINITYFREE KEY SYSTEM (1h expiry + 100 limited keys)
 local ZaporiumKeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/cheyt2025-cyber/Keys/main/ZaporiumKeySystem.lua"))()
 
-local VALIDATION_URL = "https://raw.githubusercontent.com/cheyt2025-cyber/Keysystem/refs/heads/main/validate.txt"
+local VALIDATION_URL = "https://Zaporium-Key.infinityfree.me/checkkey.php"
 local SAVE_FILE = "ZaporiumKeySave.txt"
 
 local function isKeyValid(key)
@@ -11,7 +11,7 @@ local function isKeyValid(key)
         return game:HttpGet(VALIDATION_URL .. "?key=" .. key)
     end)
     if not success then return false end
-    return response:find("VALID") ~= nil
+    return response == "valid"  -- Matches your PHP output for 1h expiry + limited keys
 end
 
 local function scheduleDeleteAfter24h()
