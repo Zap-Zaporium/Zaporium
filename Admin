@@ -1,7 +1,9 @@
 -- ZaporiumKeySystem.lua → NOW WITH PERMANENT KEY SAVING (until 24h expires)
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
+
 local SAVE_FILE = "ZaporiumKeySave.txt" -- saved on your PC
+
 local ZaporiumKeySystem = {}
 
 function ZaporiumKeySystem.new(config)
@@ -37,7 +39,7 @@ function ZaporiumKeySystem.new(config)
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 50)
     title.BackgroundTransparency = 1
-    title.Text = config.Title or "ZAPORIUM HUB"
+    title.Text = "ZAPORIUM HUB"
     title.TextColor3 = Color3.fromRGB(0, 255, 255)
     title.Font = Enum.Font.GothamBold
     title.TextSize = 28
@@ -84,11 +86,11 @@ function ZaporiumKeySystem.new(config)
     status.TextSize = 16
     status.Parent = frame
 
-    -- Get Key button (UPDATED TO NEW SITE PLACEHOLDER)
+    -- Get Key button (updated to your fixed HTML URL)
     getKeyBtn.MouseButton1Click:Connect(function()
-        setclipboard("https://zaporium.xyz/key") -- ← Update this to your actual key generator site
+        setclipboard("https://cheyt2025-cyber.github.io/Keysystem/")
         game.StarterGui:SetCore("SendNotification",{Title="Zaporium";Text="Link copied! Opening...";Duration=4})
-        request({Url="https://zaporium.xyz/key"}) -- ← Update URL here too
+        request({Url="https://cheyt2025-cyber.github.io/Keysystem/"})
     end)
 
     -- Check key button
@@ -104,7 +106,7 @@ function ZaporiumKeySystem.new(config)
         status.TextColor3 = Color3.fromRGB(255,255,0)
 
         if config.ValidateKey(key) then
-            -- SAVE THE KEY SO IT NEVER ASKS ONLY ONCE (until 24h)
+            -- SAVE THE KEY SO IT NEVER ASKS ONLY ONCE
             if writefile then
                 writefile(SAVE_FILE, key)
             end
