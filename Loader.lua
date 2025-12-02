@@ -1,7 +1,8 @@
 -- ZAPORIUM HUB LOADER - OFFICIAL FINAL VERSION (Rejoin Works Perfectly)
 -- New Repository: https://github.com/Zap-Zaporium/Zaporium
+-- Key System: Loaded from /Admin (ZaporiumKeySystem.lua)
 
-local ZaporiumKeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zap-Zaporium/Zaporium/refs/heads/main/ZaporiumKeySystem.lua"))()
+local ZaporiumKeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zap-Zaporium/Zaporium/main/Admin"))()
 
 local VALIDATION_URL = "https://raw.githubusercontent.com/Zap-Zaporium/Zaporium/refs/heads/main/validate.txt"
 local SAVE_FILE = "ZaporiumKeySave.txt"
